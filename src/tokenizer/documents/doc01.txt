@@ -1,3 +1,2 @@
-Tokenization is the process of breaking a stream of text up into words, phrases, symbols, or other meaningful elements called tokens. The list of tokens becomes input for further processing such as parsing or text mining. Tokenization is useful both in linguistics (where it is a form of text segmentation), and in computer science, where it forms part of lexical analysis.
-Tokenization is particularly difficult for languages written in scriptio continua which exhibit no word boundaries such as Ancient Greek, Chinese, or Thai.
-Some ways to address the more difficult problems include developing more complex heuristics, querying a table of common special-cases, or fitting the tokens to a language model that identifies collocations in a later processing step.
+I just do not trust him.
+He betrayed their trust.
