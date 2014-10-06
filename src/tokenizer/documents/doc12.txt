@@ -1,0 +1,7 @@
+Typically, tokenization occurs at the word level. However, it is sometimes difficult to define what is meant by a "word". Often a tokenizer relies on simple heuristics, for example:
+All contiguous strings of alphabetic characters are part of one token; likewise with numbers
+Tokens are separated by whitespace characters, such as a space or line break, or by punctuation characters.
+Punctuation and whitespace may or may not be included in the resulting list of tokens.
+In languages that use inter-word spaces (such as most that use the Latin alphabet, and most programming languages), this approach is fairly straightforward. However, even here there are many edge cases such as contractions, hyphenated words, emoticons, and larger constructs such as URIs (which for some purposes may count as single tokens). A classic example is "New York-based", which a naive tokenizer may break at the space even though the better break is (arguably) at the hyphen.
+Tokenization is particularly difficult for languages written in scriptio continua which exhibit no word boundaries such as Ancient Greek, Chinese, or Thai.
+Some ways to address the more difficult problems include developing more complex heuristics, querying a table of common special-cases, or fitting the tokens to a language model that identifies collocations in a later processing step.
