@@ -1,0 +1,3 @@
+C:/Users/lapps/Skydrive/nlpmp/BigData.NLP/src/tokenizer/documents/doc01.txt
+C:/Users/lapps/Skydrive/nlpmp/BigData.NLP/src/tokenizer/documents/doc02.txt
+C:/Users/lapps/Skydrive/nlpmp/BigData.NLP/src/tokenizer/documents/doc03.txt
