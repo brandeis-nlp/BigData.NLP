@@ -10,7 +10,7 @@ import re, os
 
 ## sentence detection
 SENT_RE = re.compile(r'([A-Z][^\.!?]*[\.!?])', re.M)
-DOC_DIR = os.path.abspath(os.path.dirname(__file__));
+DOC_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class MRTokenizer(MRJob):
     def mapper(self, _, docname):
