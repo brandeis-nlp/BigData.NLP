@@ -43,7 +43,7 @@ class HMMTagger(object):
         self.PI = [0 for x in range(self.N)]  # """ Initialization matrix """
         self.Alpha = Matrix(self.N, self.T)  # """ Forward parameter matrix """
         self.Beta = Matrix(self.N, self.T)  # """ Backward parameter """
-        self.CurrDelta = [0 for x in range(self.N)]  # """ Initialization matrix """
+        # self.CurrDelta = [0 for x in range(self.N)]  # """ Initialization matrix """
 
     def ForwardInit(self):
         print "Forward Init Start."
@@ -137,30 +137,44 @@ class HMMTagger(object):
         print "Train Induction Start."
         print "Train Induction End."
 
-    def Evaluate(self):
+    def Evaluate(self, words=[]):
         print "Evaluate Start."
+        deltas = self.ViterbiInit(words)
+        tags = self.Viterbi(words, deltas)
         print "Evaluate End."
+        return tags
 
     def BaumWelchInit(self):
         print "Baum Welch Init Start."
-
         print "Baum Welch Init End."
 
     def BaumWelch(self):
         print "Baum Welch Start."
-
         print "Baum Welch End."
 
     def ViterbiInit(self, words=[]):
         print "Viterbi Init Start."
-        deltas = [0 for x in range(0, self.N-1)]
+        wl = len(words)
+        deltas = Matrix(wl, self.N)
         for i in range(0, self.N-1):
-            deltas[i] = self.PI[i] * self.B.get(i, 0)
+            delta = self.PI[i] * self.B.get(i, 0)
+            deltas.set(0, i, delta)
         print "Viterbi Init End."
         return deltas
 
-    def Viterbi(self, words=[], deltas=[]):
+    def Viterbi(self, words=[], deltas=Matrix()):
         print "Viterbi Start."
-
+        wl = len(words)
+        tags = ['' for x in range(0, wl-1)]
+        for t in range(1, wl-1):
+            for i in range(0, self.N-1):
+                max_delta = 0
+                for j in range(0, self.N-1):
+                    delta = deltas.get(t-1, j) * self.A.get(j, i) * self.B.get(i, t)
+                    if (delta > max_delta):
+                        max_delta = delta
+                        tags[t-1] = j
+                deltas.set(t, i, max_delta)
         print "Viterbi End."
+        return tags
 
