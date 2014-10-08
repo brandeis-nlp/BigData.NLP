@@ -1,7 +1,7 @@
 #######################################################################################################################
 #
 #  HMM based tagger.
-#
+#  shicq@brandeis.edu
 #
 #######################################################################################################################
 
@@ -114,7 +114,6 @@ class HMMTagger(object):
                 print
         print "MLE End."
 
-
     def UnsupervisedTrain(self):
         """
         Expectation Maximization algorithm for unsupervised train.
@@ -124,7 +123,7 @@ class HMMTagger(object):
         self.BaumWelch()
         print "Unsupervised Train End."
 
-    def Decode(self, words=[]):
+    def Decode(self, words):
         """
         Decode will use Viterbi algorithm to calculate best sequence.
         """
@@ -137,7 +136,7 @@ class HMMTagger(object):
         print "Train Induction Start."
         print "Train Induction End."
 
-    def Evaluate(self, words=[]):
+    def Evaluate(self, words):
         print "Evaluate Start."
         deltas = self.ViterbiInit(words)
         tags = self.Viterbi(words, deltas)
@@ -152,7 +151,7 @@ class HMMTagger(object):
         print "Baum Welch Start."
         print "Baum Welch End."
 
-    def ViterbiInit(self, words=[]):
+    def ViterbiInit(self, words):
         print "Viterbi Init Start."
         wl = len(words)
         deltas = Matrix(wl, self.N)
@@ -162,7 +161,7 @@ class HMMTagger(object):
         print "Viterbi Init End."
         return deltas
 
-    def Viterbi(self, words=[], deltas=Matrix()):
+    def Viterbi(self, words, deltas=Matrix()):
         print "Viterbi Start."
         wl = len(words)
         tags = ['' for x in range(0, wl-1)]
