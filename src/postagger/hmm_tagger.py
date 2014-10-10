@@ -4,9 +4,11 @@
 #  shicq@brandeis.edu
 #
 #######################################################################################################################
+import re, os
+import mrjob
 
 """
-x m m m m m m m m m m m m
+x m m m m m m m m m m m x
 n                       n
 n          (i,j)        n
 n                       n
@@ -177,3 +179,5 @@ class HMMTagger(object):
         print "Viterbi End."
         return tags
 
+if __name__ == '__main__':
+     MRCounter.run()
