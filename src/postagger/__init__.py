@@ -1,1 +1,1 @@
-__author__ = 'lapps'
+_author__ = 'lapps'

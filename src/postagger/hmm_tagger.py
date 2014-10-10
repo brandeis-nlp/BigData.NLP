@@ -4,13 +4,13 @@
 #  shicq@brandeis.edu
 #
 #######################################################################################################################
-import re, os
-import mrjob
+import re, os, sys
 
+WORD_RE = re.compile(r"[\S]+")
 """
-x m m m m m m m m m m m x
+x m m m m m m j m m m m x
 n                       n
-n          (i,j)        n
+i          (i*m+j)      n
 n                       n
 x m m m m m m m m m m m x
 """
@@ -26,158 +26,83 @@ class Matrix(object):
     def set(self, i, j, val):
         self.data[i*self.m+j] = val
 
+    def __str__(self):
+        return str(self.data)
 
 class HMMTagger(object):
     """
     Supervised Hidden Markov model POS tagger.
     """
-    def __init__(self, tags_size=0, words_size=0):
-        self.N = tags_size
-        self.T = words_size
-        self.Tags = ['' for x in range(self.N)]  # """ all the tags """
-        self.Words = ['' for x in range(self.T)]  # """ all the words """
-        self.UniGramFreq = [0 for x in range(self.T)]  # """ uni-gram frequency """
-        self.BiGramFreq = Matrix(self.T, self.T)  # """ bi-gram frequency """
-        self.ObservationFreq =  Matrix(self.T, self.N)  # """ emission frequency """
-        self.ConditionalFreq = Matrix()  # """  """
+    def __init__(self, model_dump_fil):
+        import cPickle as pickle
+        model_dump = pickle.load(open(model_dump_fil))
+        self.N = model_dump['size']['tag']
+        self.T = model_dump['size']['word']
+        self.Tags = model_dump['tag']  # """ all the tags """
+        self.Words = model_dump['word']   # """ all the words """
         self.A = Matrix(self.N, self.N)  # """ transition matrix """
-        self.B = Matrix(self.N, self.T)  # """ emission(observation) matrix """
-        self.PI = [0 for x in range(self.N)]  # """ Initialization matrix """
-        self.Alpha = Matrix(self.N, self.T)  # """ Forward parameter matrix """
-        self.Beta = Matrix(self.N, self.T)  # """ Backward parameter """
-        # self.CurrDelta = [0 for x in range(self.N)]  # """ Initialization matrix """
+        self.WordIndex = {}
+        self.TagIndex = {}
+        # print self.Tags, self.Words
+        for i in range(0, self.N):
+            self.TagIndex[self.Tags[i]] = i
+        for i in range(0, self.T):
+            self.WordIndex[self.Words[i]] = i
+        for i in range(0, self.N):
+            for j in range(0, self.N):
+                self.A.set(i,j, model_dump['alpha'].get(str((self.Tags[i],self.Tags[j])),  0.000000001))
+        self.B = Matrix(self.T, self.N)  # """ emission(observation) matrix """
+        for i in range(0, self.N):
+            for j in range(0, self.T):
+                self.B.set(i,j, model_dump['beta'].get(str((self.Tags[i], self.Words[j])), 0.00000001))
+        self.PI = []  # """ Initialization matrix """
+        for i in range(0, self.N):
+            self.PI.append(model_dump['pi'][self.Tags[i]])
 
-    def ForwardInit(self):
-        print "Forward Init Start."
-        for i in range(0, self.N-1):
-            for t in range(0, self.T-1):
-                alpha = self.PI[i] * self.B.get(i,t)
-                self.Alpha.set(i, t, alpha)
-        print "Forward Init End."
-
-    def Forward(self):
-        print "Forward Start."
-        for t in range(0, self.T-1):
-            for j in range(0, self.N-1):
-                sum_of_alphas = 0     # sum of previous product of previous alpha and transition
-                for i in range(0, self.N-1):
-                    sum_of_alphas += self.Alpha.get(i, t) * self.A.get(i, j)
-                alpha = sum_of_alphas * self.B.get(j, t+1)
-                self.Alpha.set(j, t+1, alpha)
-        print "Forward End."
-
-    def BackwardInit(self):
-        print "Backward Init Start."
-        for t in range(0, self.T-1):
-            for i in range(0, self.N-1):
-                self.Beta.set(i, t, 1)
-        print "Backward Init End."
-
-    def Backward(self):
-        print "Backward Start."
-        for t in range(self.T-2, 0, -1):
-            for j in range(0, self.N-1):
-                sum_of_beta = 0
-                for i in range(0, self.N-1):
-                    sum_of_beta += self.Beta.get(i, t+1) * self.A.get(j, i) * self.B.get(j, t+1)
-                self.Beta.set(j, t, sum_of_beta)
-        print "Backward End."
-
-    def SupervisedTrain(self):
-        """
-        Directly calculate the transition matrix (A), emission matrix (B), and
-        initialization matrix (PI). using maximal likelihood estimation.
-        """
-        print "Supervised Train Start."
-        self.MLE()
-        print "Supervised Train End."
-
-    def MLE(self):
-        """
-        a_ij = P(t_i|t_j ) = Count(t_i, t_j ) / Count(t_i)
-        b_j (t) = P(w_t|t_j ) = Count(w_t, t_j ) / Count(t_j )
-        pi_i = P(q_1 = t_i) = Count(q_1 = t_i) / Count(q_1)
-        """
-        print "MLE Start."
-        # alpha expectation
-        for i in range(0, self.N-1):
-            for j in range(0, self.N-1):
-                # a_ij = P(t_i|t_j ) = Count(t_i, t_j ) / Count(t_i)
-                print
-        # beta expectation
-        for t in range(0, self.T-1):
-            for j in range(0, self.N-1):
-                # b_j (t) = P(w_t|t_j ) = Count(w_t, t_j ) / Count(t_j )
-                print
-        # pi expectation
-        for i in range(0, self.N-1):
-            for j in range(0, self.N-1):
-                # a_ij = P(t_i|t_j ) = Count(t_i, t_j ) / Count(t_i)
-                print
-        print "MLE End."
-
-    def UnsupervisedTrain(self):
-        """
-        Expectation Maximization algorithm for unsupervised train.
-        """
-        print "Unsupervised Train Start."
-        self.BaumWelchInit()
-        self.BaumWelch()
-        print "Unsupervised Train End."
-
+    ###########################################################
     def Decode(self, words):
         """
         Decode will use Viterbi algorithm to calculate best sequence.
         """
         print "Decode Start."
-        self.ViterbiInit(words)
-        self.Viterbi(words)
+        idx = []
+        words.append(unicode('<end>'))
+        for word in words:
+            idx.append(self.WordIndex.get(word.lower(), -1))
+        print idx, 'idx'
+
+        V = [{}]
+        path = {}
+
+        # Initialize base cases (t == 0)
+        for y in range(0, self.N):
+            V[0][y] = self.PI[y] * self.B.get(y,idx[0])
+            path[y] = [y]
+
+        # Run Viterbi for t > 0
+        for t in range(1, len(words)):
+            V.append({})
+            newpath = {}
+
+            for y in range(0, self.N):
+                (prob, state) = max((V[t-1][y0] * self.A.get(y0,y) * self.B.get(y, idx[t]), y0) for y0 in range(0, self.N))
+                V[t][y] = prob
+                newpath[y] = path[state] + [y]
+
+            # Don't need to remember the old paths
+            path = newpath
+        n = 0           # if only one element is observed max is sought in the initialization values
+        if len(words)!=1:
+            n = t
+        # self.print_dptable(V)
+        (prob, state) = max((V[n][y], y) for y in range(0, self.N))
+        tags = []
+        for t in path[state]:
+            tags.append(self.Tags[t])
+        print tags
         print "Decode End."
-
-    def TrainInduction(self):
-        print "Train Induction Start."
-        print "Train Induction End."
-
-    def Evaluate(self, words):
-        print "Evaluate Start."
-        deltas = self.ViterbiInit(words)
-        tags = self.Viterbi(words, deltas)
-        print "Evaluate End."
-        return tags
-
-    def BaumWelchInit(self):
-        print "Baum Welch Init Start."
-        print "Baum Welch Init End."
-
-    def BaumWelch(self):
-        print "Baum Welch Start."
-        print "Baum Welch End."
-
-    def ViterbiInit(self, words):
-        print "Viterbi Init Start."
-        wl = len(words)
-        deltas = Matrix(wl, self.N)
-        for i in range(0, self.N-1):
-            delta = self.PI[i] * self.B.get(i, 0)
-            deltas.set(0, i, delta)
-        print "Viterbi Init End."
-        return deltas
-
-    def Viterbi(self, words, deltas=Matrix()):
-        print "Viterbi Start."
-        wl = len(words)
-        tags = ['' for x in range(0, wl-1)]
-        for t in range(1, wl-1):
-            for i in range(0, self.N-1):
-                max_delta = 0
-                for j in range(0, self.N-1):
-                    delta = deltas.get(t-1, j) * self.A.get(j, i) * self.B.get(i, t)
-                    if (delta > max_delta):
-                        max_delta = delta
-                        tags[t-1] = j
-                deltas.set(t, i, max_delta)
-        print "Viterbi End."
-        return tags
+        return (prob, tags)
 
 if __name__ == '__main__':
-     MRCounter.run()
+     tagger = HMMTagger('HMM_MODEL')
+     tagger.Decode(WORD_RE.findall(sys.argv[1]))
