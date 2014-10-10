@@ -69,7 +69,6 @@ class HMMTagger(object):
         words.append(unicode('<end>'))
         for word in words:
             idx.append(self.WordIndex.get(word.lower(), -1))
-        print idx, 'idx'
 
         V = [{}]
         path = {}
